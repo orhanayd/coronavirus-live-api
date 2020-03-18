@@ -16,9 +16,37 @@
         )
     );
     $data = file_get_contents($_ENV["api_url" ]);
-    
+
+    function sort_data($data, $orderby){
+        $sort_list=[
+            'total',
+            'death',
+            'recovered'
+        ];
+
+        if(in_array($orderby, $sort_list)){
+            $sortArray = array();
+            foreach($data as $person){ 
+                foreach($person as $key=>$value){ 
+                    if(!isset($sortArray[$key])){ 
+                        $sortArray[$key] = array(); 
+                    } 
+                    $sortArray[$key][] = $value; 
+                } 
+            }
+            array_multisort($sortArray[$orderby], SORT_DESC, $data);
+        }
+        
+        return $data;
+    }
+
     if($data){
         $data = json_decode($data);
+
+        if(isset($_GET['sort'])){
+            $data =sort_data($data, strip_tags($_GET['sort']));
+        }
+
         $main_response['result']['data'] = $data;
         foreach($data as $case){
             $main_response['result']['total'] = $main_response['result']['total']+$case->total;
